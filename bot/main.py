@@ -4,23 +4,31 @@ import logging
 from dotenv import load_dotenv
 import os
 
+# logging
+logging.basicConfig(
+    level=logging.INFO,
+    format='%(asctime)s [%(level)s] %(name)s : %(message)s' 
+)
+
 # load .env
 load_dotenv()
 TOKEN = os.getenv('TOKEN')
+if TOKEN is None:
+    logging.error('Token not set')
+    raise RuntimeError('Token not set')
 
 # set up logging
-os.makedirs('logs')
-handler = logging.FileHandler('logs/discord.log', encoding='utf-8', mode='w')
+handler = logging.StreamHandler()
 
 # bot quickstart
 intents = discord.Intents.default()
 intents.message_content = True
 
-client = discord.Client(command_prefix='!', intents=intents)
+client = discord.Client(intents=intents)
 
 @client.event
 async def on_ready():
-    print(f'Bot have logged in as {client.user}')
+    logging.info(f'Bot have logged in as {client.user}')
 
 @client.event
 async def on_message(message):
@@ -30,4 +38,4 @@ async def on_message(message):
     if message.content.startswith('!hello'):
         await message.channel.send('Hello, nerds!')
 
-client.run(TOKEN, log_handler=handler, log_level=logging.DEBUG)
+client.run(TOKEN)
