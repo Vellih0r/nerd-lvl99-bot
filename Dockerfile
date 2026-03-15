@@ -9,4 +9,4 @@ RUN pip install -r requirements.txt
 
 COPY . .
 
-ENTRYPOINT [ "python3", "-u", "main.py" ]
+ENTRYPOINT [ "python3", "-u", "bot/main.py" ]
