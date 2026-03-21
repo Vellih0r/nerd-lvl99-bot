@@ -1,0 +1,9 @@
+[
+    {
+        "number": 1,
+        "lang": "C",
+        "question": "What will be the output of the following code?\n",
+        "code": "1 #include <stdio.h>\n2 int main() {\n3 \tfor (int i = 0; i < 3; i++); {\n4 \t\tprintf(\"hello\\n\");\n5 \t}\n6 }",
+        "answer": "hello"
+    }
+]
