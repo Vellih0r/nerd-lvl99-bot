@@ -8,7 +8,7 @@
         "two": "hello\\nhello\\hello",
         "three": "hello",
         "four": "none of this",
-        "answer": ":three",
+        "answer": "three",
         "explanation": "The ';' at the end of the for loop -> loop does nothing."
     }
 ]

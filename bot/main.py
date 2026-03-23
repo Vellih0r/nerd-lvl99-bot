@@ -21,7 +21,7 @@ if TOKEN is None:
 
 # load .json
 questions = []
-MSQs = []
+MCQs = []
 try:
     with open('questions.json', 'r') as f:
         json_data = f.read()
@@ -30,9 +30,9 @@ except Exception as e:
     logging.error(f'Error loading json: {e}')
 
 try:
-    with open('msq.json', 'r') as f:
+    with open('mcq.json', 'r') as f:
         json_data = f.read()
-        MSQs = json.loads(json_data)
+        MCQs = json.loads(json_data)
 except Exception as e:
     logging.error(f'Error loading json: {e}')
 
@@ -48,7 +48,9 @@ async def on_ready():
 
 # track questions
 active_questions = {}
-active_msqs = {}
+active_mcqs = {}
+
+text_to_emoji = {'one': '1️⃣', 'two': '2️⃣', 'three': '3️⃣', 'four': '4️⃣'}
 
 @client.event
 async def on_message(message):
@@ -63,19 +65,20 @@ async def on_message(message):
 
     if message.content.startswith('!mcq'):
         try:
-            q = choice(MSQs)
-            active_msqs[message.id] = (message.author.id, q)
-            logging.debug(f'msq choosen: {q}')
-            content = f'msq number: {q["number"]}\n'
+            q = choice(MCQs)
+            
+            logging.debug(f'mcq choosen: {q}')
+            content = f'mcq number: {q["number"]}\n'
             content += q["question"]
             content += f'\n```{q["lang"]}\n{q["code"]}```'
             content += f'\n1. {q["one"]}\n2. {q["two"]}\n 3. {q["three"]}\n4. {q["four"]}'
             msg = await message.channel.send(content)
+            active_mcqs[msg.id] = (message.author.id, q)
             for emoji in ["1️⃣", "2️⃣", "3️⃣", "4️⃣"]:
                 await msg.add_reaction(emoji)
         except IndexError as e:
-            content = 'msq list is empty. Sorry >_<'
-            logging.error(f'Empty msq list: {e}')
+            content = 'mcq list is empty. Sorry >_<'
+            logging.error(f'Empty mcq list: {e}')
             await message.channel.send(content)
         except Exception as e:
             content = 'Unknown error o_O'
@@ -112,19 +115,17 @@ async def on_message(message):
 async def on_reaction_add(reaction, user):
     if user.bot:
         return
-    
-    if reaction.message.id in active_msqs:
-        author_id, q = active_msqs[reaction.message.id]
+    if reaction.message.id in active_mcqs:
+        author_id, q = active_mcqs[reaction.message.id]
 
         if user.id != author_id:
             return
-    
-        if reaction.emoji.name == q["answer"]:
+        
+        if reaction.emoji == text_to_emoji[q["answer"]]:
             await reaction.message.reply('✅Correct! Good job')
         else:
-            await reaction.message.reply(f'❌Wrong... Skill issue detected\n\nExplanation:\n_{q["explanation"]}_')
+            await reaction.message.reply(f'❌Wrong... Skill issue detected\n\nExplanation:\n_{q["explanation"]}_\nAnswer: {q['answer']}')
 
-        del active_msqs[user.id]
-
+        del active_mcqs[reaction.message.id]
 
 client.run(TOKEN)
