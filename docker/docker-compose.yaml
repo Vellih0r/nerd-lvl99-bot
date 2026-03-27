@@ -1,0 +1,54 @@
+services:
+  nerd-bot:
+    build:
+      context: ..
+      dockerfile: docker/Dockerfile
+    env_file: ../.env
+    networks:
+        - nerd_network
+  postgres:
+    image: postgres:16.11-alpine3.22
+    container_name: postgres
+    restart: unless-stopped
+    ports:
+      - "5432:5432"
+    env_file: ../.env
+    volumes:
+      - pg_volume:/var/lib/postgresql/data:rw
+      - ../postgres/postgres.conf:/etc/postgresql/postgresql.conf:ro
+      - ../postgres/init-scripts:/docker-entrypoint-initdb.d:ro
+    command: ["postgres", "-c", "config_file=/etc/postgresql/postgresql.conf"]
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U $${POSTGRES_USER} -d $${POSTGRES_DB} -p $${POSTGRES_PORT}"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 60s
+    stop_grace_period: 120s
+    networks:
+      - nerd_network
+
+  pgadmin:
+    image: dpage/pgadmin4
+    container_name: pgadmin
+    restart: unless-stopped
+    ports:
+      - "5050:8080"
+    env_file: ../.env
+    volumes:
+      - pgadmin_volume:/var/lib/pgadmin:rw
+    depends_on:
+      postgres:
+        condition: service_healthy
+    networks:
+      - nerd_network
+
+networks:
+  nerd_network:
+    driver: bridge
+
+volumes:
+  pg_volume:
+    driver: local
+  pgadmin_volume:
+    driver: local
