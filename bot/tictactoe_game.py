@@ -5,7 +5,12 @@ def get_gamefield(rows: int = 3, cols: int = 3) -> list[list[str]]:
 
 def gamefield_to_text(gamefield: list[list[str]]) -> str:
     str = ''
-    for row in gamefield:
+    str += '  '
+    for j in range(len(gamefield[0])):
+        str += f'{j} '
+    str += '\n'
+    for i, row in enumerate(gamefield):
+        str += f'{i}'
         for cell in row:
             str += cell
         str += '\n'
@@ -18,6 +23,8 @@ def take_turn(gamefield: list[list[str]], x: int, y: int, emj_name: str) -> list
     if emj_name not in emj:
         raise TypeError('emj_name must by "x", "o", or "n"')
     
+    if gamefield[y][x] != '⬜':
+        raise Exception('this cell already taken')
     gamefield[y][x] = emj[emj_name]
     return gamefield
 
@@ -67,10 +74,12 @@ def who_won(gamefield: list[list[str]]) -> int:
     elif winner['⭕']:
         return 0
     else:
-        return 2
+        return 3
     
 def result_to_text(result: int) -> str:
     match result:
+        case 3:
+            return 'no one got it (tie)'
         case 2:
             return 'tie!'
         case 1:
@@ -78,14 +87,42 @@ def result_to_text(result: int) -> str:
         case 0:
             return 'o won!'
 
-def tic_tac_toe():
+def gameloop():
+    x_turn = True
     gf = get_gamefield()
-    gf = take_turn(gf, 2, 0, 'x')
-    gf = take_turn(gf, 1, 1, 'x')
-    gf = take_turn(gf, 0, 2, 'x')
-    print(gamefield_to_text(gf))
-    result = who_won(gf)
+
+    result = 3
+    count = 0
+    while count < 9:
+        count += 1
+        
+        if x_turn: e = 'x'
+        else:    e = 'o'
+
+        coords = input(f'{emj[e]} TURN - enter coordinates of your turn:(x,y)')
+        try:
+            coords = coords.split(',')
+            x,y = coords
+            x = int(x)
+            y = int(y)
+        except Exception as e:
+            print('Invalid coords format')
+
+        try:
+            gf = take_turn(gf, x, y, e)
+        except Exception as e:
+            print(f'Invalid coords or field already taken -> {e}')
+            count -= 1
+            continue
+        x_turn = not x_turn
+        print(gamefield_to_text(gf))
+        result = who_won(gf)
+        if result != 3:
+            break
     print(result_to_text(result))
+
+def tic_tac_toe():
+    gameloop()
 
 
 tic_tac_toe()
