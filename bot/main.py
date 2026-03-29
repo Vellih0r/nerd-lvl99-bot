@@ -1,5 +1,6 @@
 import discord
 import logging
+from typing import Optional, Union
 
 from dotenv import load_dotenv
 import os
@@ -19,22 +20,17 @@ if TOKEN is None:
     logging.error('Token not set')
     raise RuntimeError('Token not set')
 
-# load .json
-questions = []
-MCQs = []
-try:
-    with open('questions.json', 'r') as f:
-        json_data = f.read()
-        questions = json.loads(json_data)
-except Exception as e:
-    logging.error(f'Error loading json: {e}')
+def load_json(filename: str) -> Optional[Union[list[dict], dict]]:
+    try:
+        with open(filename, 'r') as f:
+            obj = json.loads(f.read())
+            return obj
+    except Exception as e:
+        logging.error(f'Error loading json={filename} - {e}')
+    return None
 
-try:
-    with open('mcq.json', 'r') as f:
-        json_data = f.read()
-        MCQs = json.loads(json_data)
-except Exception as e:
-    logging.error(f'Error loading json: {e}')
+questions = load_json('json_data/questions.json')
+MCQs = load_json('json_data/mcq.json')
 
 # bot quickstart
 intents = discord.Intents.default()
