@@ -7,7 +7,7 @@ import os
 import json
 from random import choice
 
-from tictactoe_game import tictactoe, result_to_text
+from tictactoe_game import tictactoe, result_to_text, get_game_id
 
 # logging
 logging.basicConfig(
@@ -48,6 +48,7 @@ async def on_ready():
 active_questions = {}
 active_mcqs = {}
 ttt_games = {}
+user_to_gameid = {}
 
 text_to_emoji = {'one': '1️⃣', 'two': '2️⃣', 'three': '3️⃣', 'four': '4️⃣'}
 
@@ -63,19 +64,55 @@ async def on_message(message):
         pass
 
     if message.content.startswith('!ttt'):
-        ttt_games[message.author.id] = tictactoe()
+        if message.author.id in user_to_gameid:
+            await message.reply('You are already in a game')
+            return
+        if len(message.mentions) != 1:
+            await message.reply('Command usage: !ttt @user')
+            return
 
-    if message.author.id in ttt_games:
+        tagged_user = message.mentions[0]
+        tagged_user_id = tagged_user.id
+        
+        id = get_game_id()
+        gamedata = tictactoe()
+        user_to_gameid[message.author.id] = id
+        user_to_gameid[tagged_user_id] = id
+        ttt_games[id] = {'x': message.author.id, 'o':tagged_user_id, 'data':gamedata}
+        await message.reply(f'Game created!\n{ttt_games[id]['data']['gamefield']}')
+
+    if message.author.id in user_to_gameid:
+        id = user_to_gameid[message.author.id]
+
         if message.content.startswith('!end'):
-            del ttt_games[message.author.id]
+            game = ttt_games[id]
+            del user_to_gameid[game['x']]
+            del user_to_gameid[game['o']]
+            del ttt_games[id]
+            return
         else:
-            ttt_games[message.author.id] = tictactoe(ttt_games[message.author.id], message.content)
-            if ttt_games[message.author.id]['result'] !=3:
-                result = ttt_games[message.author.id]['result']
-                message.reply(result_to_text(result))
-                del ttt_games[message.author.id]
+            gd = ttt_games[id]['data']
+            if gd['x_turn']:
+                if message.author.id == ttt_games[id]['o']:
+                    await message.reply("It's ❌ turn! But you play as ⭕")
+                    return
+                e = '❌'
             else:
-                message.reply(ttt_games[message.author.id]['text'])
+                if message.author.id == ttt_games[id]['x']:
+                    await message.reply("It's ⭕ turn! But you play as ❌")
+                    return
+                e = '⭕'
+
+            gd = tictactoe(gd, message.content)
+            ttt_games[id]['data'] = gd
+
+            if gd['result'] !=3:
+                result = gd['result']
+                await message.reply(result_to_text(result))
+                del ttt_games[id]
+            else:
+                await message.reply(gd['text'])
+            
 
     if message.content.startswith('!mcq'):
         try:

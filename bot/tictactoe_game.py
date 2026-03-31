@@ -1,5 +1,8 @@
 emj = {'o': '⭕', 'x': '❌', 'n': '⬜'}
 
+def get_game_id():
+    return 1
+
 def get_gamefield(rows: int = 3, cols: int = 3) -> list[list[str]]:
     return [ [emj['n'] for _ in range(cols)] for _ in range(rows) ]
 
@@ -87,7 +90,8 @@ def result_to_text(result: int) -> str:
         case 0:
             return '⭕ won!'
 
-def tictactoe(gamedata = None, coords = None):
+def tictactoe(gamedata: dict = None, coords: str = None):
+    '''gamedata - "x_turn": bool, "gamefield": list[list[str]] "result": int, "turns": int, "text": str'''
     if gamedata is None:
         gamedata = {'x_turn': True, 'gamefield': get_gamefield(), 'result': 3, 'turns': 0, 'text': ''}
         return gamedata
@@ -126,6 +130,12 @@ def tictactoe(gamedata = None, coords = None):
 
     gamedata['text'] += '\n'
     gamedata['text'] += (gamefield_to_text(gamedata['gamefield']))
+
+    if gamedata['x_turn']:
+        e = 'x'
+    else:
+        e = 'o'
+    gamedata['text'] += f'Next - \n{emj[e]} turn, enter coords:'
     return gamedata
 
 def main():
