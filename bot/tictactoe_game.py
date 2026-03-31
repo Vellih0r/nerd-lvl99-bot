@@ -79,50 +79,60 @@ def who_won(gamefield: list[list[str]]) -> int:
 def result_to_text(result: int) -> str:
     match result:
         case 3:
-            return 'no one got it (tie)'
+            return 'tie!'
         case 2:
             return 'tie!'
         case 1:
-            return 'x won!'
+            return '❌ won!'
         case 0:
-            return 'o won!'
+            return '⭕ won!'
 
-def gameloop():
-    x_turn = True
-    gf = get_gamefield()
+def tictactoe(gamedata = None, coords = None):
+    if gamedata is None:
+        gamedata = {'x_turn': True, 'gamefield': get_gamefield(), 'result': 3, 'turns': 0, 'text': ''}
+        return gamedata
 
-    result = 3
-    count = 0
-    while count < 9:
-        count += 1
-        
-        if x_turn: e = 'x'
-        else:    e = 'o'
+    if gamedata['turns'] >= 9:
+        gamedata['result'] = 2
+        return gamedata
 
-        coords = input(f'{emj[e]} TURN - enter coordinates of your turn:(x,y)')
-        try:
-            coords = coords.split(',')
-            x,y = coords
-            x = int(x)
-            y = int(y)
-        except Exception as e:
-            print('Invalid coords format')
+    gamedata['text'] = ''
+    gamedata['turns'] += 1
+    
+    if gamedata['x_turn']:
+        e = 'x'
+    else:
+        e = 'o'
 
-        try:
-            gf = take_turn(gf, x, y, e)
-        except Exception as e:
-            print(f'Invalid coords or field already taken -> {e}')
-            count -= 1
-            continue
-        x_turn = not x_turn
-        print(gamefield_to_text(gf))
-        result = who_won(gf)
-        if result != 3:
-            break
-    print(result_to_text(result))
+    try:
+        coords = coords.split(',')
+        x,y = coords
+        x = int(x)
+        y = int(y)
+    except Exception as e:
+        gamedata['text'] += ('Invalid coords format')
+        gamedata['turns'] -= 1
+        return gamedata
 
-def tic_tac_toe():
-    gameloop()
+    try:
+        gamedata['gamefield'] = take_turn(gamedata['gamefield'], x, y, e)
+    except Exception as e:
+        text += (f'Invalid coords or field already taken -> {e}')
+        gamedata['turns'] -= 1
+        return gamedata
+    
+    gamedata['x_turn'] = not gamedata['x_turn']
+    gamedata['result'] = who_won(gamedata['gamefield'])
 
+    gamedata['text'] += '\n'
+    gamedata['text'] += (gamefield_to_text(gamedata['gamefield']))
+    return gamedata
 
-tic_tac_toe()
+def main():
+    gd = tictactoe()
+    while gd['result'] == 3:
+        gd = tictactoe(gd)
+    print(result_to_text(gd['result']))
+
+if __name__ == '__main__':
+    main()

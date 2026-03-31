@@ -7,6 +7,8 @@ import os
 import json
 from random import choice
 
+from tictactoe_game import tictactoe, result_to_text
+
 # logging
 logging.basicConfig(
     level=logging.INFO,
@@ -45,6 +47,7 @@ async def on_ready():
 # track questions
 active_questions = {}
 active_mcqs = {}
+ttt_games = {}
 
 text_to_emoji = {'one': '1️⃣', 'two': '2️⃣', 'three': '3️⃣', 'four': '4️⃣'}
 
@@ -58,6 +61,21 @@ async def on_message(message):
 
     if message.content.startswith('!help'):
         pass
+
+    if message.content.startswith('!ttt'):
+        ttt_games[message.author.id] = tictactoe()
+
+    if message.author.id in ttt_games:
+        if message.content.startswith('!end'):
+            del ttt_games[message.author.id]
+        else:
+            ttt_games[message.author.id] = tictactoe(ttt_games[message.author.id], message.content)
+            if ttt_games[message.author.id]['result'] !=3:
+                result = ttt_games[message.author.id]['result']
+                message.reply(result_to_text(result))
+                del ttt_games[message.author.id]
+            else:
+                message.reply(ttt_games[message.author.id]['text'])
 
     if message.content.startswith('!mcq'):
         try:
