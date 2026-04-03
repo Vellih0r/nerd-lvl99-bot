@@ -5,9 +5,9 @@ from typing import Optional, Union
 from dotenv import load_dotenv
 import os
 import json
-from random import choice
+from random import choice, randint
 
-from tictactoe_game import tictactoe, result_to_text, get_game_id
+from tictactoe_game import tictactoe, result_to_text
 
 # logging
 logging.basicConfig(
@@ -33,6 +33,7 @@ def load_json(filename: str) -> Optional[Union[list[dict], dict]]:
 
 questions = load_json('json_data/questions.json')
 MCQs = load_json('json_data/mcq.json')
+text_to_emoji = {'one': '1️⃣', 'two': '2️⃣', 'three': '3️⃣', 'four': '4️⃣'}
 
 # bot quickstart
 intents = discord.Intents.default()
@@ -49,8 +50,13 @@ active_questions = {}
 active_mcqs = {}
 ttt_games = {}
 user_to_gameid = {}
+used_ids = set()
 
-text_to_emoji = {'one': '1️⃣', 'two': '2️⃣', 'three': '3️⃣', 'four': '4️⃣'}
+def get_game_id():
+    id = randint(1,1_000_000)
+    while id in used_ids:
+        id = randint(1,1_000_000)
+    used_ids.add(id)
 
 @client.event
 async def on_message(message):
@@ -83,22 +89,23 @@ async def on_message(message):
 
     if message.author.id in user_to_gameid:
         id = user_to_gameid[message.author.id]
+        game = ttt_games[id]
 
         if message.content.startswith('!end'):
-            game = ttt_games[id]
+            await message.reply(f'TicTacToe game ended!')
             del user_to_gameid[game['x']]
             del user_to_gameid[game['o']]
             del ttt_games[id]
             return
         else:
-            gd = ttt_games[id]['data']
+            gd = game['data']
             if gd['x_turn']:
-                if message.author.id == ttt_games[id]['o']:
+                if message.author.id == game['o']:
                     await message.reply("It's ❌ turn! But you play as ⭕")
                     return
                 e = '❌'
             else:
-                if message.author.id == ttt_games[id]['x']:
+                if message.author.id == game['x']:
                     await message.reply("It's ⭕ turn! But you play as ❌")
                     return
                 e = '⭕'
@@ -109,6 +116,8 @@ async def on_message(message):
             if gd['result'] !=3:
                 result = gd['result']
                 await message.reply(result_to_text(result))
+                del user_to_gameid[game['x']]
+                del user_to_gameid[game['o']]
                 del ttt_games[id]
             else:
                 await message.reply(gd['text'])

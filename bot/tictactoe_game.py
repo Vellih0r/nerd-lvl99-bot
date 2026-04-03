@@ -1,7 +1,8 @@
+from random import randint
 emj = {'o': '⭕', 'x': '❌', 'n': '⬜'}
 
 def get_game_id():
-    return 1
+    return randint(1,100000)
 
 def get_gamefield(rows: int = 3, cols: int = 3) -> list[list[str]]:
     return [ [emj['n'] for _ in range(cols)] for _ in range(rows) ]
@@ -36,19 +37,20 @@ def who_won(gamefield: list[list[str]]) -> int:
     col_streak = [ True for _ in range(len(gamefield[0])) ]
     diagonal_streak = True
     back_diagonal_streak = True
-    winner = {'⭕': False, '❌': False}
-    for i, row in enumerate(gamefield):
-        for j, cell in enumerate(row):
-            # if cell == emj['n']:
-            #     continue
-            
-            if j == 0:
-                row_streak = True
-            elif gamefield[i][0] != cell:
-                row_streak = False
+    winner = {'⭕': False, '❌': False}            
 
+    for i, row in enumerate(gamefield):
+        row_streak = None
+        row_count = 0
+        for j, cell in enumerate(row):
             if gamefield[0][j] != cell:
                 col_streak[j] = False
+
+            if row_streak is None:
+                row_streak = cell
+                row_count += 1
+            elif row_streak == cell:
+                row_count += 1
 
             if i == len(gamefield)-1 and col_streak[j]:
                 winner[cell] = True
@@ -61,7 +63,7 @@ def who_won(gamefield: list[list[str]]) -> int:
                     back_diagonal_streak = False
 
 
-        if row_streak:
+        if row_count == len(row):
             winner[row_streak] = True
 
         if i == len(gamefield)-1:
@@ -138,11 +140,13 @@ def tictactoe(gamedata: dict = None, coords: str = None):
     gamedata['text'] += f'Next - \n{emj[e]} turn, enter coords:'
     return gamedata
 
-def main():
-    gd = tictactoe()
-    while gd['result'] == 3:
-        gd = tictactoe(gd)
-    print(result_to_text(gd['result']))
-
-if __name__ == '__main__':
-    main()
+if __name__ == "__main__":
+    result = 3
+    gf = tictactoe()
+    while result == 3:
+        coords = input()
+        gf = tictactoe(gf, coords)
+        print(gf['text'])
+        print(gf['result'])
+        result = gf['result']
+        print(gf['gamefield'])
