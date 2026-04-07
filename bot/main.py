@@ -9,6 +9,11 @@ from random import choice, randint
 
 from tictactoe_game import tictactoe, result_to_text
 
+# TODO:
+# + ничью фиксить
+# + добавить вывод ошибки при повторном ходе
+# + норм интерфейс
+
 # logging
 logging.basicConfig(
     level=logging.INFO,
@@ -50,13 +55,13 @@ active_questions = {}
 active_mcqs = {}
 ttt_games = {}
 user_to_gameid = {}
-used_ids = set()
+game_ids = set()
 
 def get_game_id():
     id = randint(1,1_000_000)
-    while id in used_ids:
+    while id in game_ids:
         id = randint(1,1_000_000)
-    used_ids.add(id)
+    game_ids.add(id)
 
 @client.event
 async def on_message(message):
@@ -120,7 +125,10 @@ async def on_message(message):
                 del user_to_gameid[game['o']]
                 del ttt_games[id]
             else:
-                await message.reply(gd['text'])
+                if gd['text']:
+                    await message.reply(gd['text'])
+                else:
+                    await message.reply(gd['Ivalid move'])
             
 
     if message.content.startswith('!mcq'):

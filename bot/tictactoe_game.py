@@ -88,9 +88,9 @@ def result_to_text(result: int) -> str:
         case 2:
             return 'tie!'
         case 1:
-            return '❌ won!'
+            return '❌ won 🏆!'
         case 0:
-            return '⭕ won!'
+            return '⭕ won 🏆!'
 
 def tictactoe(gamedata: dict = None, coords: str = None):
     '''gamedata - "x_turn": bool, "gamefield": list[list[str]] "result": int, "turns": int, "text": str'''
@@ -98,12 +98,7 @@ def tictactoe(gamedata: dict = None, coords: str = None):
         gamedata = {'x_turn': True, 'gamefield': get_gamefield(), 'result': 3, 'turns': 0, 'text': ''}
         return gamedata
 
-    if gamedata['turns'] >= 9:
-        gamedata['result'] = 2
-        return gamedata
-
     gamedata['text'] = ''
-    gamedata['turns'] += 1
     
     if gamedata['x_turn']:
         e = 'x'
@@ -117,18 +112,20 @@ def tictactoe(gamedata: dict = None, coords: str = None):
         y = int(y)
     except Exception as e:
         gamedata['text'] += ('Invalid coords format')
-        gamedata['turns'] -= 1
         return gamedata
 
     try:
         gamedata['gamefield'] = take_turn(gamedata['gamefield'], x, y, e)
+        gamedata['turns'] += 1
     except Exception as e:
-        text += (f'Invalid coords or field already taken -> {e}')
-        gamedata['turns'] -= 1
+        gamedata['text'] += (f'Invalid coords or field already taken -> {e}')
         return gamedata
     
     gamedata['x_turn'] = not gamedata['x_turn']
     gamedata['result'] = who_won(gamedata['gamefield'])
+
+    if gamedata['result'] == 3 and gamedata['turns'] >= 9:
+        gamedata['result'] = 2
 
     gamedata['text'] += '\n'
     gamedata['text'] += (gamefield_to_text(gamedata['gamefield']))
